@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - DevlopIA Quiz</title>
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Specific Admin Styles Override */
+        body {
+            background-color: #eef2f7;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .success-msg {
+            color: var(--success);
+            font-weight: bold;
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        .error-msg {
+            color: var(--error);
+            font-weight: bold;
+            margin-top: 10px;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <div class="container header-content">
+            <a href="../index.html" class="logo">
+                <img src="../assets/images/logo.svg" alt="DevlopIA Logo"> <span
+                    style="margin-left: 10px; font-size: 1.2rem; color: var(--text-gray);">| Admin</span>
+            </a>
+        </div>
+    </header>
+
+    <main class="container">
+
+        <!-- SECTION CONFIGURATION (Visible if no token) -->
+        <section id="config-section" class="admin-container">
+            <h2><i class="fa-solid fa-key"></i> Configuration Sécurité</h2>
+            <p>Entrez votre Token GitHub pour activer l'ajout de quiz.</p>
+            <br>
+            <div class="form-group">
+                <label>GitHub Personal Access Token</label>
+                <input type="password" id="github-token" placeholder="github_pat_...">
+            </div>
+            <div class="form-group">
+                <label>Nom d'utilisateur GitHub</label>
+                <input type="text" id="github-username" placeholder="ex: mon-pseudo">
+            </div>
+            <div class="form-group">
+                <label>Nom du Repository</label>
+                <input type="text" id="github-repo" placeholder="ex: devlopia-quiz" value="devlopia-quiz">
+            </div>
+            <button class="btn-start btn-admin" onclick="saveConfig()">Sauvegarder la configuration</button>
+            <div id="config-msg"></div>
+        </section>
+
+        <!-- SECTION AJOUT QUIZ (Visible if token exists) -->
+        <section id="upload-section" class="admin-container hidden">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                <h2><i class="fa-solid fa-cloud-upload-alt"></i> Ajouter un Nouveau Quiz</h2>
+                <button onclick="logout()"
+                    style="background:none; border:none; color: var(--error); cursor:pointer; text-decoration: underline;">Déconnexion</button>
+            </div>
+
+            <div class="form-group">
+                <label>Titre du Quiz</label>
+                <input type="text" id="quiz-title" placeholder="ex: Quiz #1 - Les Bases">
+            </div>
+
+            <div class="form-group">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div>
+                        <label>Semaine / Module</label>
+                        <input type="text" id="quiz-week" placeholder="ex: Semaine 1">
+                    </div>
+                    <div>
+                        <label>Durée estimée (min)</label>
+                        <input type="number" id="quiz-duration" value="10">
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Catégorie</label>
+                <select id="quiz-category">
+                    <option value="base-ia">Base de l'IA</option>
+                    <option value="avancé">Avancé</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Code HTML Brut (NotebookLM)</label>
+                <textarea id="raw-html" rows="10"
+                    placeholder="Collez ici le code source entier du quiz généré..."></textarea>
+                <p style="font-size: 0.8rem; color: var(--text-gray); margin-top: 5px;">
+                    <i class="fa-solid fa-info-circle"></i> Collez le code HTML complet généré par l'extension. Le
+                    système extraira automatiquement les questions.
+                </p>
+            </div>
+
+            <button id="btn-publish" class="btn-start btn-admin" onclick="processAndPublish()">
+                <i class="fa-solid fa-rocket"></i> Générer et Publier le Quiz
+            </button>
+
+            <div id="status-msg"></div>
+        </section>
+
+    </main>
+
+    <script src="../assets/js/admin.js"></script>
+</body>
+
+</html>

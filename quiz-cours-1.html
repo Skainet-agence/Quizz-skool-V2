@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz 1 : Introduction aux LLMs & Prompt Engineering - DevlopIA</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        /* Quiz Specific Styles */
+        .quiz-container {
+            max-width: 800px;
+            margin: 40px auto;
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .question-box {
+            margin-bottom: 30px;
+        }
+
+        .question-text {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: var(--text-dark);
+            margin-bottom: 20px;
+        }
+
+        .options-grid {
+            display: grid;
+            gap: 15px;
+        }
+
+        .option-btn {
+            padding: 15px 20px;
+            border: 2px solid #eee;
+            border-radius: 12px;
+            background: white;
+            text-align: left;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 1.1rem;
+        }
+
+        .option-btn:hover {
+            border-color: var(--primary-blue);
+            background: #f0f7ff;
+        }
+
+        .option-btn.correct {
+            background: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+
+        .option-btn.wrong {
+            background: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+
+        .feedback {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            background: #f8f9fa;
+            display: none;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+
+        .progress-bar {
+            height: 10px;
+            background: #eee;
+            border-radius: 5px;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--primary-blue);
+            width: 0%;
+            transition: width 0.3s;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div class="container header-content">
+            <a href="index.html" class="logo">
+                <img src="assets/images/logo.svg" alt="DevlopIA Logo">
+            </a>
+            <a href="index.html" class="btn-start" style="padding: 5px 15px; font-size: 0.9rem;">Quitter</a>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="quiz-container">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress"></div>
+            </div>
+
+            <div id="quiz-content">
+                <!-- Question injected here -->
+            </div>
+
+            <div class="controls">
+                <button id="btn-next" class="btn-start" style="display:none;" onclick="nextQuestion()">Suivant <i
+                        class="fa-solid fa-arrow-right"></i></button>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const quizData = [
+            {
+                "question": "Quelle est la fonction fondamentale d'un Modèle de Langage (LLM) comme ChatGPT ou Claude ?",
+                "options": [
+                    "Il raisonne de manière humaine pour comprendre le sens profond des mots.",
+                    "Il prédit le mot ou la séquence de mots la plus probable à partir d'un contexte donné.",
+                    "Il traduit instantanément des pensées abstraites en code binaire pur.",
+                    "Il effectue une recherche en temps réel sur Google pour chaque mot généré."
+                ],
+                "correct": 1,
+                "explanation": "Le fonctionnement de base d'un LLM repose sur l'utilisation d'algorithmes puissants pour anticiper la suite logique d'un texte selon des probabilités."
+            },
+            {
+                "question": "Pourquoi est-il recommandé d'arrêter d'être poli (ex: dire 'Bonjour', 'S'il te plaît') avec une IA selon le cours ?",
+                "options": [
+                    "Pour éviter de froisser l'algorithme qui préfère un ton autoritaire.",
+                    "Parce que la politesse déclenche systématiquement des erreurs de logique (hallucinations).",
+                    "Pour optimiser la consommation de tokens et la puissance de calcul.",
+                    "Pour s'assurer que l'IA ne nous considère pas comme un subalterne."
+                ],
+                "correct": 2,
+                "explanation": "Chaque mot inutile consomme des tokens, ce qui réduit la fenêtre de contexte disponible et peut augmenter les coûts ou ralentir la réponse."
+            },
+            {
+                "question": "À quoi correspond environ un 'token' dans la langue française ?",
+                "options": [
+                    "Une phrase complète.",
+                    "1 mot entier.",
+                    "10 caractères.",
+                    "0,75 mot."
+                ],
+                "correct": 3,
+                "explanation": "Cette approximation permet de calculer rapidement la longueur du texte que l'IA peut traiter dans sa fenêtre de contexte."
+            },
+            {
+                "question": "Que risque-t-il de se passer si vous confiez une tâche extrêmement complexe en un seul bloc à une IA ?",
+                "options": [
+                    "Elle va simplifier la demande ou produire une réponse générique par manque de ressources.",
+                    "Elle va systématiquement refuser de répondre pour cause de surcharge.",
+                    "Elle va demander à l'utilisateur d'acheter des crédits supplémentaires en plein milieu.",
+                    "L'IA va augmenter automatiquement sa puissance de calcul pour compenser."
+                ],
+                "correct": 0,
+                "explanation": "Face à une surcharge cognitive, l'IA a tendance à 'prendre des raccourcis' pour respecter ses limites de calcul."
+            },
+            {
+                "question": "Quelle métaphore le cours utilise-t-il pour décrire le comportement d'une IA ?",
+                "options": [
+                    "Un moteur de recherche amélioré sans aucune capacité de création.",
+                    "Un artiste imprévisible qui refuse les directives strictes.",
+                    "Un stagiaire brillant avec un QI de 200 mais strictement littéral.",
+                    "Un professeur d'université omniscient et empathique."
+                ],
+                "correct": 2,
+                "explanation": "Cette image souligne à la fois l'immense savoir encyclopédique de l'IA et son besoin d'être guidée très précisément."
+            },
+            {
+                "question": "Comment le cours définit-il le rôle de l'utilisateur vis-à-vis de l'IA ?",
+                "options": [
+                    "L'utilisateur est le patron/architecte qui définit la stratégie et cadre l'exécution.",
+                    "L'utilisateur est un simple spectateur de l'automatisation totale.",
+                    "L'utilisateur est le secrétaire qui met en forme ce que l'IA décide.",
+                    "L'utilisateur est un développeur qui doit impérativement savoir coder."
+                ],
+                "correct": 0,
+                "explanation": "Le succès dépend de la capacité de l'humain à diriger l'IA, à prendre les décisions critiques et à structurer le travail."
+            },
+            {
+                "question": "Qu'est-ce qu'une 'hallucination' dans le contexte des LLM ?",
+                "options": [
+                    "Le fait que l'IA refuse de répondre à une question controversée.",
+                    "Une information fausse générée avec une apparence de vérité et de plausibilité.",
+                    "Une erreur de serveur qui interrompt la conversation.",
+                    "Une image générée avec trop de doigts ou des membres déformés."
+                ],
+                "correct": 1,
+                "explanation": "L'IA cherche à satisfaire l'utilisateur en prédisant la suite de la phrase, quitte à inventer des faits crédibles si elle manque d'informations."
+            },
+            {
+                "question": "Quelle est la particularité principale de Perplexity par rapport aux autres LLM ?",
+                "options": [
+                    "Il est le seul capable de générer des images en 4K.",
+                    "Il se spécialise dans la recherche d'informations sourcées et vérifiables sur le web.",
+                    "Il est totalement non-censuré et permet de tout demander.",
+                    "Il possède la plus grande fenêtre de contexte du marché (100 millions de tokens)."
+                ],
+                "correct": 1,
+                "explanation": "Perplexity a été conçu dès le départ comme un moteur de réponse citant systématiquement ses sources."
+            },
+            {
+                "question": "Pourquoi une conversation longue avec une IA finit-elle par perdre en qualité ?",
+                "options": [
+                    "Parce que le pré-prompte des créateurs s'efface avec le temps.",
+                    "Parce que les serveurs surchauffent après 10 minutes d'utilisation.",
+                    "Parce qu'elle consomme de plus en plus de tokens pour se souvenir de l'historique, diluant sa puissance de calcul.",
+                    "Parce que l'IA s'ennuie du sujet traité."
+                ],
+                "correct": 2,
+                "explanation": "Plus l'historique est lourd, plus le 'poids' du contexte pèse sur la capacité de l'IA à rester précise sur la nouvelle requête."
+            },
+            {
+                "question": "Quel biais est renforcé par le fait que les créateurs d'IA veulent que vous restiez sur leur plateforme ?",
+                "options": [
+                    "L'IA a tendance à vous contredire pour stimuler le débat.",
+                    "L'IA utilise un langage excessivement technique pour paraître plus intelligente.",
+                    "L'IA refuse de répondre aux questions sur ses concurrents.",
+                    "L'IA évite de dire qu'elle ne sait pas et essaie de vous faire plaisir en allant dans votre sens."
+                ],
+                "correct": 3,
+                "explanation": "Ce biais de complaisance fait que l'IA valide parfois des idées absurdes si l'utilisateur les présente comme acquises."
+            }
+        ];
+        let currentQuestion = 0;
+        let score = 0;
+
+        function loadQuestion() {
+            const data = quizData[currentQuestion];
+            document.getElementById('progress').style.width = ((currentQuestion + 1) / quizData.length * 100) + '%';
+
+            let html = `<div class="question-box fade-in">
+                <div class="question-text">${currentQuestion + 1}. ${data.question}</div>
+                <div class="options-grid">`;
+
+            data.options.forEach((opt, index) => {
+                html += `<button class="option-btn" onclick="checkAnswer(this, ${index})">${opt}</button>`;
+            });
+
+            html += `</div><div id="feedback-box" class="feedback"></div></div>`;
+            document.getElementById('quiz-content').innerHTML = html;
+            document.getElementById('btn-next').style.display = 'none';
+        }
+
+        function checkAnswer(btn, index) {
+            const data = quizData[currentQuestion];
+            const allBtns = document.querySelectorAll('.option-btn');
+            const feedback = document.getElementById('feedback-box');
+
+            // Disable all buttons
+            allBtns.forEach(b => b.disabled = true);
+
+            if (index === data.correct) {
+                btn.classList.add('correct');
+                feedback.innerHTML = '<i class="fa-solid fa-check-circle" style="color:var(--success)"></i> <strong>Bonne réponse !</strong> <br><div style="margin-top:10px">' + data.explanation + '</div>';
+                feedback.style.display = 'block';
+                feedback.style.borderLeft = '5px solid var(--success)';
+                score++;
+                confetti({ particleCount: 30, spread: 50, origin: { y: 0.7 }, colors: ['#5B9FFF', '#2ECC71'] });
+            } else {
+                btn.classList.add('wrong');
+                allBtns[data.correct].classList.add('correct'); // Show correct one
+                feedback.innerHTML = '<i class="fa-solid fa-times-circle" style="color:var(--error)"></i> <strong>Mauvaise réponse.</strong> <br><div style="margin-top:10px">' + data.explanation + '</div>';
+                feedback.style.display = 'block';
+                feedback.style.borderLeft = '5px solid var(--error)';
+            }
+
+            document.getElementById('btn-next').style.display = 'inline-block';
+        }
+
+        function nextQuestion() {
+            currentQuestion++;
+            if (currentQuestion < quizData.length) {
+                loadQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        function showResults() {
+            const percentage = Math.round((score / quizData.length) * 100);
+            let message = "";
+            let emoji = "";
+
+            if (percentage >= 80) {
+                message = "Woaw ! A ce rythme c'est toi qui va donner les cours ! 🚀";
+                emoji = "🏆";
+                // Big Celebration
+                var duration = 3 * 1000;
+                var animationEnd = Date.now() + duration;
+                var defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+                function random(min, max) { return Math.random() * (max - min) + min; }
+                var interval = setInterval(function () {
+                    var timeLeft = animationEnd - Date.now();
+                    if (timeLeft <= 0) { return clearInterval(interval); }
+                    var particleCount = 50 * (timeLeft / duration);
+                    confetti(Object.assign({}, defaults, { particleCount, origin: { x: random(0.1, 0.3), y: Math.random() - 0.2 } }));
+                    confetti(Object.assign({}, defaults, { particleCount, origin: { x: random(0.7, 0.9), y: Math.random() - 0.2 } }));
+                }, 250);
+
+            } else if (percentage >= 50) {
+                message = "Presque parfait, l'erreur est humaine après tout, c'est pour ça qu'on utilise l'IA (héhé) 😉";
+                emoji = "🥈";
+                confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+            } else if (percentage >= 30) {
+                message = "Je te conseille de revoir le cours, tu as certainement louper quelques trucs pendant que tu étais aux toilettes... 🚽";
+                emoji = "🥉";
+            } else {
+                message = "Tu es sûr que tu as vu le bon cours ? 🤨";
+                emoji = "📉";
+            }
+
+            document.getElementById('quiz-content').innerHTML = `
+                <div class="result-card fade-in">
+                    <div style="font-size: 5rem; margin-bottom: 20px;">${emoji}</div>
+                    <h2>Quiz Terminé !</h2>
+                    <div class="score-text">${score}/${quizData.length}</div>
+                    <p style="font-size: 1.2rem; color: #7f8c8d; margin-bottom: 30px;">Soit <strong>${percentage}%</strong> de réussite</p>
+                    <div class="fun-message">${message}</div>
+                    <br>
+                    <a href="index.html" class="btn-start" style="padding: 12px 30px; font-size: 1.1rem;">Retour au sommaire</a>
+                </div>
+            `;
+            document.getElementById('btn-next').style.display = 'none';
+            document.getElementById('progress').style.width = '100%';
+        }
+
+        // Init
+        loadQuestion();
+    </script>
+</body>
+
+</html>

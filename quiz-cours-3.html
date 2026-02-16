@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz 3 : Prompt Engineering Pratique & Méthodologies - DevlopIA</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body);"></script>
+    <style>
+        /* Quiz Specific Styles */
+        .quiz-container {
+            max-width: 800px;
+            margin: 40px auto;
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .question-box {
+            margin-bottom: 30px;
+        }
+
+        .question-text {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: var(--text-dark);
+            margin-bottom: 20px;
+        }
+
+        .options-grid {
+            display: grid;
+            gap: 15px;
+        }
+
+        .option-btn {
+            padding: 15px 20px;
+            border: 2px solid #eee;
+            border-radius: 12px;
+            background: white;
+            text-align: left;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 1.1rem;
+        }
+
+        .option-btn:hover {
+            border-color: var(--primary-blue);
+            background: #f0f7ff;
+        }
+
+        .option-btn.correct {
+            background: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+
+        .option-btn.wrong {
+            background: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+
+        .feedback {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            background: #f8f9fa;
+            display: none;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+
+        .progress-bar {
+            height: 10px;
+            background: #eee;
+            border-radius: 5px;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--primary-blue);
+            width: 0%;
+            transition: width 0.3s;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div class="container header-content">
+            <a href="index.html" class="logo">
+                <img src="assets/images/logo.svg" alt="DevlopIA Logo">
+            </a>
+            <a href="index.html" class="btn-start" style="padding: 5px 15px; font-size: 0.9rem;">Quitter</a>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="quiz-container">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress"></div>
+            </div>
+
+            <div id="quiz-content">
+                <!-- Question injected here -->
+            </div>
+
+            <div class="controls">
+                <button id="btn-next" class="btn-start" style="display:none;" onclick="nextQuestion()">Suivant <i
+                        class="fa-solid fa-arrow-right"></i></button>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const quizData = [
+            {
+                "question": "Quelle est la définition fondamentale du Prompt Engineering selon le cours ?",
+                "options": [
+                    "L'art de coder des algorithmes d'apprentissage automatique pour les LLM.",
+                    "L'art de parler à l'IA pour lui faire comprendre nos demandes et son contexte.",
+                    "L'automatisation pure des réponses sans intervention humaine.",
+                    "La suppression des filtres de sécurité des modèles de langage."
+                ],
+                "correct": 1,
+                "explanation": "Le cours définit cette discipline comme une méthode de guidage pour orienter l'IA vers les résultats attendus en lui donnant un cadre clair."
+            },
+            {
+                "question": "Dans la métaphore du peintre, que risque-t-il de se passer si l'on ne donne pas d'instructions précises ?",
+                "options": [
+                    "Le peintre refusera catégoriquement de travailler.",
+                    "Le peintre utilisera ses propres restes de peinture et négligera certaines zones.",
+                    "Le peintre demandera automatiquement des précisions avant de commencer.",
+                    "Le résultat sera parfait car le peintre est un expert."
+                ],
+                "correct": 1,
+                "explanation": "Sans cadre précis, l'IA (comme le peintre) comble les vides par ses propres choix, qui peuvent être sous-optimaux ou aléatoires."
+            },
+            {
+                "question": "Pour quelle raison le format XML est-il recommandé pour les automatisations complexes en $2026$ ?",
+                "options": [
+                    "Il est plus facile à lire pour un humain débutant que le Markdown.",
+                    "Il permet de créer des frontières sémantiques claires que l'IA parse nativement.",
+                    "Il consomme moins de jetons (tokens) que le texte brut.",
+                    "C'est le seul format compatible avec ChatGPT."
+                ],
+                "correct": 1,
+                "explanation": "Les balises ouvrantes et fermantes éliminent les ambiguïtés de structure pour l'IA, ce qui est crucial en production. [10]"
+            },
+            {
+                "question": "Quelle amélioration de la clarté le format XML apporte-t-il par rapport au texte brut selon les données de $2026$ ?",
+                "options": [
+                    "Environ $10-15\\%$.",
+                    "Environ $30-50\\%$.",
+                    "Exactement $100\\%$.",
+                    "Moins de $5\\%$."
+                ],
+                "correct": 1,
+                "explanation": "Le support indique que l'utilisation de balises personnalisées réduit les ambiguïtés dans cette fourchette de pourcentage."
+            },
+            {
+                "question": "Que signifie le 'S' dans le modèle de prompt ROSE ?",
+                "options": [
+                    "Structure.",
+                    "Style.",
+                    "Sécurité.",
+                    "Synthèse."
+                ],
+                "correct": 1,
+                "explanation": "Le modèle ROSE se compose de : Rôle, Objectif, Style et Exemple."
+            },
+            {
+                "question": "Quel modèle de structure est particulièrement recommandé pour les tâches marketing complexes ?",
+                "options": [
+                    "ROSE.",
+                    "PEACE.",
+                    "XML Pur.",
+                    "Markdown simple."
+                ],
+                "correct": 1,
+                "explanation": "Le modèle PEACE (Persona, End Goal, Audience, Constraints, Example) est extrêmement utilisé en marketing et en entreprise."
+            },
+            {
+                "question": "Dans le cadre du format Markdown, quel symbole est utilisé pour définir des variables (éléments changeants) ?",
+                "options": [
+                    "Les étoiles `**`.",
+                    "Les crochets `[]`.",
+                    "Les hashtags `#`.",
+                    "Les tirets `-`."
+                ],
+                "correct": 1,
+                "explanation": "Le cours spécifie que les crochets servent à identifier les variables dans un prompt."
+            },
+            {
+                "question": "Quelle est la principale utilité de la 'Chain of Thought' (CoT) ?",
+                "options": [
+                    "Rendre l'IA plus rapide dans ses réponses.",
+                    "Forcer l'IA à décomposer son raisonnement par étapes logiques.",
+                    "Traduire automatiquement un prompt en plusieurs langues.",
+                    "Réduire la longueur finale de la réponse de l'IA."
+                ],
+                "correct": 1,
+                "explanation": "Le CoT permet de gérer des tâches complexes nécessitant une auto-analyse et une vérification étape par étape."
+            },
+            {
+                "question": "Selon le cours, quelle stratégie un 'expert IA malin' utilise-t-il pour créer un prompt XML ?",
+                "options": [
+                    "Il l'écrit manuellement de A à Z pour éviter les erreurs.",
+                    "Il utilise une IA pour transformer un prompt Markdown complet en format XML.",
+                    "Il refuse d'utiliser l'XML car le gain est nul.",
+                    "Il achète des modèles de prompts XML pré-faits sur internet."
+                ],
+                "correct": 1,
+                "explanation": "Il est plus efficace de donner les idées en Markdown à une IA et de lui demander de générer la structure XML correspondante."
+            },
+            {
+                "question": "Dans le modèle Anthropic $2026$, à quoi sert la balise de réponse 'pré-remplie' ?",
+                "options": [
+                    "À donner un exemple de mauvaise réponse à éviter.",
+                    "À forcer l'IA à commencer sa réponse par une balise spécifique pour guider le format.",
+                    "À limiter le nombre de mots de la réponse.",
+                    "À masquer la réponse finale à l'utilisateur."
+                ],
+                "correct": 1,
+                "explanation": "En pré-remplissant le début de la réponse (ex: `<reponse>`), on s'assure que l'IA respecte immédiatement le format de sortie attendu."
+            }
+        ];
+        let currentQuestion = 0;
+        let score = 0;
+
+        function loadQuestion() {
+            const data = quizData[currentQuestion];
+            document.getElementById('progress').style.width = ((currentQuestion + 1) / quizData.length * 100) + '%';
+
+            let html = `<div class="question-box fade-in">
+                <div class="question-text">${currentQuestion + 1}. ${data.question}</div>
+                <div class="options-grid">`;
+
+            data.options.forEach((opt, index) => {
+                html += `<button class="option-btn" onclick="checkAnswer(this, ${index})">${opt}</button>`;
+            });
+
+            html += `</div><div id="feedback-box" class="feedback"></div></div>`;
+            document.getElementById('quiz-content').innerHTML = html;
+            document.getElementById('btn-next').style.display = 'none';
+            // Render Math if any
+            renderMathInElement(document.getElementById('quiz-content'));
+        }
+
+        function checkAnswer(btn, index) {
+            const data = quizData[currentQuestion];
+            const allBtns = document.querySelectorAll('.option-btn');
+            const feedback = document.getElementById('feedback-box');
+
+            // Disable all buttons
+            allBtns.forEach(b => b.disabled = true);
+
+            if (index === data.correct) {
+                btn.classList.add('correct');
+                feedback.innerHTML = '<i class="fa-solid fa-check-circle" style="color:var(--success)"></i> <strong>Bonne réponse !</strong> <br><div style="margin-top:10px">' + data.explanation + '</div>';
+                feedback.style.display = 'block';
+                feedback.style.borderLeft = '5px solid var(--success)';
+                score++;
+                confetti({ particleCount: 30, spread: 50, origin: { y: 0.7 }, colors: ['#5B9FFF', '#2ECC71'] });
+            } else {
+                btn.classList.add('wrong');
+                allBtns[data.correct].classList.add('correct'); // Show correct one
+                feedback.innerHTML = '<i class="fa-solid fa-times-circle" style="color:var(--error)"></i> <strong>Mauvaise réponse.</strong> <br><div style="margin-top:10px">' + data.explanation + '</div>';
+                feedback.style.display = 'block';
+                feedback.style.borderLeft = '5px solid var(--error)';
+            }
+            // Render Math in feedback
+            renderMathInElement(feedback);
+
+            document.getElementById('btn-next').style.display = 'inline-block';
+        }
+
+        function nextQuestion() {
+            currentQuestion++;
+            if (currentQuestion < quizData.length) {
+                loadQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        function showResults() {
+            const percentage = Math.round((score / quizData.length) * 100);
+            let message = "";
+            let emoji = "";
+
+            if (percentage >= 80) {
+                message = "Excellent ! Tu maîtrises le Prompt Engineering ! 🚀";
+                emoji = "🏆";
+                // Big Celebration
+                var duration = 3 * 1000;
+                var animationEnd = Date.now() + duration;
+                var defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+                function random(min, max) { return Math.random() * (max - min) + min; }
+                var interval = setInterval(function () {
+                    var timeLeft = animationEnd - Date.now();
+                    if (timeLeft <= 0) { return clearInterval(interval); }
+                    var particleCount = 50 * (timeLeft / duration);
+                    confetti(Object.assign({}, defaults, { particleCount, origin: { x: random(0.1, 0.3), y: Math.random() - 0.2 } }));
+                    confetti(Object.assign({}, defaults, { particleCount, origin: { x: random(0.7, 0.9), y: Math.random() - 0.2 } }));
+                }, 250);
+
+            } else if (percentage >= 50) {
+                message = "Bien joué, mais quelques révisions sur la structure ne feraient pas de mal. 😉";
+                emoji = "🥈";
+                confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+            } else {
+                message = "Il faut revoir les fondamentaux du Prompt Engineering. 📚";
+                emoji = "📉";
+            }
+
+            document.getElementById('quiz-content').innerHTML = `
+                <div class="result-card fade-in">
+                    <div style="font-size: 5rem; margin-bottom: 20px;">${emoji}</div>
+                    <h2>Quiz Terminé !</h2>
+                    <div class="score-text">${score}/${quizData.length}</div>
+                    <p style="font-size: 1.2rem; color: #7f8c8d; margin-bottom: 30px;">Soit <strong>${percentage}%</strong> de réussite</p>
+                    <div class="fun-message">${message}</div>
+                    <br>
+                    <a href="index.html" class="btn-start" style="padding: 12px 30px; font-size: 1.1rem;">Retour au sommaire</a>
+                </div>
+            `;
+            document.getElementById('btn-next').style.display = 'none';
+            document.getElementById('progress').style.width = '100%';
+        }
+
+        // Init
+        loadQuestion();
+    </script>
+</body>
+
+</html>

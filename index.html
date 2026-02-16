@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DevlopIA School - Plateforme de Quiz</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+    <!-- Integration de FontAwesome pour les icones -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+
+    <header>
+        <div class="container header-content">
+            <a href="index.html" class="logo">
+                <img src="assets/images/logo.svg" alt="DevlopIA Logo">
+            </a>
+            <!-- Placeholder pour menu futur -->
+            <nav></nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <!-- Section Hero -->
+        <section class="hero">
+            <h1>Bienvenue dans le Quiz Test DevlopIA</h1>
+            <p>Maîtrisez l'IA semaine après semaine. Choisissez un module ci-dessous pour commencer votre entraînement.
+            </p>
+        </section>
+
+        <!-- Section Liste des Quiz -->
+        <section id="quiz-categories">
+            <h2 class="category-title"><i class="fa-solid fa-layer-group"></i> Base de l'IA</h2>
+
+            <div id="base-ia-grid" class="quiz-grid">
+                <!-- Les cartes de quiz seront injectées ici par JS -->
+                <p style="text-align: center; color: var(--text-gray); width: 100%;">Chargement des quiz...</p>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 DevlopIA School - Tous droits réservés.</p>
+        </div>
+    </footer>
+
+    <script src="assets/js/app.js"></script>
+</body>
+
+</html>

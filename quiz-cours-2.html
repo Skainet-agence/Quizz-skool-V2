@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz 2 : Marché de l'IA et les 4 grands LLM - DevlopIA</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        /* Quiz Specific Styles */
+        .quiz-container {
+            max-width: 800px;
+            margin: 40px auto;
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .question-box {
+            margin-bottom: 30px;
+        }
+
+        .question-text {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: var(--text-dark);
+            margin-bottom: 20px;
+        }
+
+        .options-grid {
+            display: grid;
+            gap: 15px;
+        }
+
+        .option-btn {
+            padding: 15px 20px;
+            border: 2px solid #eee;
+            border-radius: 12px;
+            background: white;
+            text-align: left;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 1.1rem;
+        }
+
+        .option-btn:hover {
+            border-color: var(--primary-blue);
+            background: #f0f7ff;
+        }
+
+        .option-btn.correct {
+            background: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+
+        .option-btn.wrong {
+            background: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+
+        .feedback {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            background: #f8f9fa;
+            display: none;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+
+        .progress-bar {
+            height: 10px;
+            background: #eee;
+            border-radius: 5px;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--primary-blue);
+            width: 0%;
+            transition: width 0.3s;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div class="container header-content">
+            <a href="index.html" class="logo">
+                <img src="assets/images/logo.svg" alt="DevlopIA Logo">
+            </a>
+            <a href="index.html" class="btn-start" style="padding: 5px 15px; font-size: 0.9rem;">Quitter</a>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="quiz-container">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress"></div>
+            </div>
+
+            <div id="quiz-content">
+                <!-- Question injected here -->
+            </div>
+
+            <div class="controls">
+                <button id="btn-next" class="btn-start" style="display:none;" onclick="nextQuestion()">Suivant <i
+                        class="fa-solid fa-arrow-right"></i></button>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const quizData = [
+            {
+                "question": "Quel est le poids estimé du marché de l'intelligence artificielle au début de l'année 2026 ?",
+                "options": [
+                    "375 milliards de dollars",
+                    "185 milliards de dollars",
+                    "500 milliards de dollars",
+                    "1000 milliards de dollars"
+                ],
+                "correct": 0,
+                "explanation": "Le texte indique que c'est la valeur globale du marché à l'ouverture de l'année 2026."
+            },
+            {
+                "question": "Pourquoi une automatisation IA peut-elle se vendre plusieurs milliers d'euros alors qu'elle ne prend que quelques heures à réaliser ?",
+                "options": [
+                    "Parce que vous vendez le temps de votre client, pas le vôtre",
+                    "À cause du coût élevé des abonnements aux outils IA",
+                    "Parce que le code informatique est par nature très cher",
+                    "Uniquement parce que le marché est en situation de monopole"
+                ],
+                "correct": 0,
+                "explanation": "La valeur repose sur la transformation business et le gain de temps opérationnel pour le dirigeant."
+            },
+            {
+                "question": "Quel pourcentage de patrons se sentent dans l'urgence d'implémenter l'IA dans leur entreprise ?",
+                "options": [
+                    "58%",
+                    "80%",
+                    "32%",
+                    "15%"
+                ],
+                "correct": 0,
+                "explanation": "Le texte précise que plus de la moitié des dirigeants craignent d'être remplacés par des concurrents utilisant l'IA."
+            },
+            {
+                "question": "Dans le niveau 'Débutant', quels outils sont recommandés pour créer une landing page qualitative en quelques heures ?",
+                "options": [
+                    "Lovable ou Orkids",
+                    "N8N et Make",
+                    "WordPress et Wix",
+                    "GitHub et Docker"
+                ],
+                "correct": 0,
+                "explanation": "Ces outils de 'vibe coding' permettent aux débutants de générer des pages web sans maîtriser le développement."
+            },
+            {
+                "question": "Quelle est la principale force de l'IA Gemini selon l'expert ?",
+                "options": [
+                    "Sa fenêtre de contexte et l'écosystème Google",
+                    "Sa supériorité absolue en codage informatique",
+                    "Son prix extrêmement bas par rapport à Claude",
+                    "Son absence totale d'hallucinations"
+                ],
+                "correct": 0,
+                "explanation": "Gemini permet d'analyser de gros volumes de données sans perdre le fil grâce à sa capacité de tokens."
+            },
+            {
+                "question": "Selon la source, quel est le plus gros défaut de l'IA Claude ?",
+                "options": [
+                    "Son coût élevé et sa consommation rapide de crédits",
+                    "Sa mauvaise qualité de rédaction",
+                    "Son incapacité à contrôler un navigateur",
+                    "Son manque de modèles différents"
+                ],
+                "correct": 0,
+                "explanation": "La version Opus peut consommer les crédits journaliers en seulement quelques requêtes."
+            },
+            {
+                "question": "Quel outil est spécialisé dans la recherche web approfondie avec citation systématique des sources ?",
+                "options": [
+                    "Perplexity",
+                    "ChatGPT",
+                    "Gamma App",
+                    "Claude Haiku"
+                ],
+                "correct": 0,
+                "explanation": "Perplexity excelle dans la navigation web et la création de rapports sourcés et vérifiables."
+            },
+            {
+                "question": "Dans le niveau intermédiaire, quel est l'avantage de créer des workflows (scénarios automatisés) ?",
+                "options": [
+                    "Ils peuvent être copiés-collés et adaptés pour d'autres clients",
+                    "Ils ne nécessitent aucune connexion internet",
+                    "Ils sont totalement gratuits à faire fonctionner",
+                    "Ils remplacent définitivement le besoin d'un site web"
+                ],
+                "correct": 0,
+                "explanation": "Une fois le système conçu, le travail pour le client suivant est réduit à 1 ou 2 heures."
+            },
+            {
+                "question": "À quel prix peut-on facturer une infrastructure IA complète (type SaaS) pour une boutique e-commerce ?",
+                "options": [
+                    "Entre 7000 et 15000 euros",
+                    "Entre 150 et 300 euros",
+                    "Environ 1200 euros maximum",
+                    "Plus de 100000 euros"
+                ],
+                "correct": 0,
+                "explanation": "C'est la fourchette de prix indiquée pour une solution clé en main incluant chatbot, gestion de stocks et avis clients."
+            },
+            {
+                "question": "Que permet de faire le 'Mode Social' de Perplexity ?",
+                "options": [
+                    "Chercher des informations uniquement sur les réseaux sociaux",
+                    "Poster automatiquement des messages sur Twitter",
+                    "Discuter avec d'autres utilisateurs de Perplexity",
+                    "Bloquer les publicités sur Facebook"
+                ],
+                "correct": 0,
+                "explanation": "Cela permet de prendre la température de l'opinion humaine sur Reddit, YouTube ou Instagram."
+            }
+        ];
+        let currentQuestion = 0;
+        let score = 0;
+
+        function loadQuestion() {
+            const data = quizData[currentQuestion];
+            document.getElementById('progress').style.width = ((currentQuestion + 1) / quizData.length * 100) + '%';
+
+            let html = `<div class="question-box fade-in">
+                <div class="question-text">${currentQuestion + 1}. ${data.question}</div>
+                <div class="options-grid">`;
+
+            // Create an array of indices [0, 1, 2, 3] and shuffle it
+            let indices = data.options.map((_, i) => i);
+            for (let i = indices.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [indices[i], indices[j]] = [indices[j], indices[i]];
+            }
+
+            // Loop through shuffled indices to create buttons
+            // We pass 'originalIndex' (which is 'i') to checkAnswer to verify correctness
+            indices.forEach(i => {
+                html += `<button class="option-btn" onclick="checkAnswer(this, ${i})">${data.options[i]}</button>`;
+            });
+
+            html += `</div><div id="feedback-box" class="feedback"></div></div>`;
+            document.getElementById('quiz-content').innerHTML = html;
+            document.getElementById('btn-next').style.display = 'none';
+        }
+
+        function checkAnswer(btn, index) {
+            const data = quizData[currentQuestion];
+            const allBtns = document.querySelectorAll('.option-btn');
+            const feedback = document.getElementById('feedback-box');
+
+            // Disable all buttons
+            allBtns.forEach(b => b.disabled = true);
+
+            if (index === data.correct) {
+                btn.classList.add('correct');
+                feedback.innerHTML = '<i class="fa-solid fa-check-circle" style="color:var(--success)"></i> <strong>Bonne réponse !</strong> <br><div style="margin-top:10px">' + data.explanation + '</div>';
+                feedback.style.display = 'block';
+                feedback.style.borderLeft = '5px solid var(--success)';
+                score++;
+                confetti({ particleCount: 30, spread: 50, origin: { y: 0.7 }, colors: ['#5B9FFF', '#2ECC71'] });
+            } else {
+                btn.classList.add('wrong');
+                allBtns[data.correct].classList.add('correct'); // Show correct one
+                feedback.innerHTML = '<i class="fa-solid fa-times-circle" style="color:var(--error)"></i> <strong>Mauvaise réponse.</strong> <br><div style="margin-top:10px">' + data.explanation + '</div>';
+                feedback.style.display = 'block';
+                feedback.style.borderLeft = '5px solid var(--error)';
+            }
+
+            document.getElementById('btn-next').style.display = 'inline-block';
+        }
+
+        function nextQuestion() {
+            currentQuestion++;
+            if (currentQuestion < quizData.length) {
+                loadQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        function showResults() {
+            const percentage = Math.round((score / quizData.length) * 100);
+            let message = "";
+            let emoji = "";
+
+            if (percentage >= 80) {
+                message = "Woaw ! A ce rythme c'est toi qui va donner les cours ! 🚀";
+                emoji = "🏆";
+                // Big Celebration
+                var duration = 3 * 1000;
+                var animationEnd = Date.now() + duration;
+                var defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+                function random(min, max) { return Math.random() * (max - min) + min; }
+                var interval = setInterval(function () {
+                    var timeLeft = animationEnd - Date.now();
+                    if (timeLeft <= 0) { return clearInterval(interval); }
+                    var particleCount = 50 * (timeLeft / duration);
+                    confetti(Object.assign({}, defaults, { particleCount, origin: { x: random(0.1, 0.3), y: Math.random() - 0.2 } }));
+                    confetti(Object.assign({}, defaults, { particleCount, origin: { x: random(0.7, 0.9), y: Math.random() - 0.2 } }));
+                }, 250);
+
+            } else if (percentage >= 50) {
+                message = "Presque parfait, l'erreur est humaine après tout, c'est pour ça qu'on utilise l'IA (héhé) 😉";
+                emoji = "🥈";
+                confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+            } else if (percentage >= 30) {
+                message = "Je te conseille de revoir le cours, tu as certainement louper quelques trucs pendant que tu étais aux toilettes... 🚽";
+                emoji = "🥉";
+            } else {
+                message = "Tu es sûr que tu as vu le bon cours ? 🤨";
+                emoji = "📉";
+            }
+
+            document.getElementById('quiz-content').innerHTML = `
+                <div class="result-card fade-in">
+                    <div style="font-size: 5rem; margin-bottom: 20px;">${emoji}</div>
+                    <h2>Quiz Terminé !</h2>
+                    <div class="score-text">${score}/${quizData.length}</div>
+                    <p style="font-size: 1.2rem; color: #7f8c8d; margin-bottom: 30px;">Soit <strong>${percentage}%</strong> de réussite</p>
+                    <div class="fun-message">${message}</div>
+                    <br>
+                    <a href="index.html" class="btn-start" style="padding: 12px 30px; font-size: 1.1rem;">Retour au sommaire</a>
+                </div>
+            `;
+            document.getElementById('btn-next').style.display = 'none';
+            document.getElementById('progress').style.width = '100%';
+        }
+
+        // Init
+        loadQuestion();
+    </script>
+</body>
+
+</html>
