@@ -9,7 +9,7 @@ async function loadQuizzes() {
 
     try {
         // Fetch data from local JSON file
-        const response = await fetch('data/quiz-list.json');
+        const response = await fetch('data/quiz-list.json?t=' + new Date().getTime());
         if (!response.ok) throw new Error('Erreur chargement quiz');
 
         const quizzes = await response.json();
